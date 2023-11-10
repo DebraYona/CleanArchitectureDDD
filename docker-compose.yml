@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  node:
+    container_name: node-${PROJECT_NAME}
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - ${SERVER_PORT}
+    ports:
+      - ${SERVER_PORT}:3000
+    networks:
+      - clean-architecute-ddd
+  rabbitmq:
+    container_name: rabbitmq-${PROJECT_NAME}
+    image: bitnami/rabbitmq:3.8.22
+    restart: always
+    environment:
+      - RABBITMQ_USERNAME=${EVENT_BUS_RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${EVENT_BUS_RABBITMQ_PASSWORD}
+    ports:
+      - ${EVENT_BUS_RABBITMQ_PORT}:5672
+    networks:
+      - clean-architecute-ddd
+    logging:
+      driver: 'none'
+  mongo:
+    container_name: mongo-${PROJECT_NAME}
+    image: mongo:4.4.6-bionic
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
+    ports:
+      - ${MONGODB_PORT}:27017
+    volumes:
+      # - ./db-data:/data/db
+      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
+    networks:
+      - clean-architecute-ddd
+    logging:
+      driver: 'none'
+
+networks:
+  clean-architecute-ddd:
+    driver: bridge
